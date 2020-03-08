@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.18.0
+Date: 2020-03-08
+  Features:
+    - Initial release. This mod will generally keep an area inside all your radars visible by recharting the chunks contained within.
+      Caveat: Does not work all the time, nor with all chunks.
+      Made somewhat UPS-efficient by tracking the chunks needed, and only charting them.
+  Changes:
+  Bugfixes:
+  Info:
