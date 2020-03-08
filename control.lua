@@ -8,6 +8,7 @@ local function CreateGlobals()
   global.Mod.South = global.Mod.South or 0
   global.Mod.West = global.Mod.West or 0
   global.Mod.RadarCoords = global.Mod.RadarCoords or {}
+  global.Mod.BaseCandidates = global.Mod.BaseCandidates or {}
   global.Mod.RechartInterval = global.Mod.RechartInterval or 30
 end
 

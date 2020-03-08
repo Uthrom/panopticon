@@ -151,31 +151,6 @@ function GetIntersect( points )
 	return xk, yk
 end
 
-local function pointInBase( x, y)
-  return PointWithinShape(global.Mod.RadarCoords, x, y)
-
-  -- local vertices = global.Mod.RadarCoords
---   local points = global.Mod.RadarCoords
-	
---  for i=1, #vertices-1, 2 do
---    points[#points+1] = { x=vertices[i], y=vertices[i+1] }
---  end
-
---  local i, j = #points, #points
---  local inside = false
-
---  for i=1, #points do
---    if ((points[i].y < y and points[j].y>=y or points[j].y< y and points[i].y>=y) and (points[i].x<=x or points[j].x<=x)) then
---      if (points[i].x+(y-points[i].y)/(points[j].y-points[i].y)*(points[j].x-points[i].x)<x) then
---        inside = not inside
---      end
---    end
---    j = i
---  end
-
---  return inside
-end
-
 local function _addRadar(list, radar)
   local found = False
   for k,v in ipairs(global.Mod.RadarCoords) do
@@ -198,10 +173,25 @@ local function _addRadar(list, radar)
     end
     log(string.format("Added: %d, %d", radar.position.x, radar.position.y))
     log(string.format("New N/S/E/W Max Coords: %d, %d, %d, %d", global.Mod.North, global.Mod.South, global.Mod.East, global.Mod.West))
-    table.insert(list, radar.position)
+	table.insert(list, radar.position)
+	Events._findBaseCandidates()
   end
 end
 
+local function _findBaseCandidates()
+	local surf = game.surfaces.nauvis
+	global.Mod.BaseCandidates = {}
+
+	for chunk in surf.get_chunks() do
+	  local left, top = (chunk.x * 32) + 16, (chunk.y * 32) + 16
+	  if (top > global.Mod.North) and (top < global.Mod.South) and 
+		 (left > global.Mod.West) and (left < global.Mod.East) then
+		if PointWithinShape(global.Mod.RadarCoords, left, top) then
+			table.insert(global.Mod.BaseCandidates, {x = left, y = top })
+		  nChunks = nChunks + 1
+		end
+	  end
+	end
 
 function Events.findall_radars()
   global.Mod.RadarCoords = {}
@@ -212,7 +202,6 @@ function Events.findall_radars()
     for _, radar in pairs(game.surfaces.nauvis.find_entities_filtered{area = {{top, left}, {bottom, right}}, name ="radar"}) do
 
       _addRadar(global.Mod.RadarCoords, radar)
-
     end
   end
 end
@@ -221,22 +210,13 @@ function Events.rechart_base()
   log("Recharting...")
   local nChunks = 0
   local tChunks = 0
-   local surf = game.surfaces.nauvis
+  local surf = game.surfaces.nauvis
   
-  for chunk in surf.get_chunks() do
-    local left, top = (chunk.x * 32) + 16, (chunk.y * 32) + 16
-    if (top > global.Mod.North) and (top < global.Mod.South) and 
-       (left > global.Mod.West) and (left < global.Mod.East) then
-      -- log(string.format("Chunk %d, %d inside boundary <%d, %d - %d, %d>", left, top, global.Mod.West, global.Mod.North, global.Mod.East, global.Mod.South))
-      if pointInBase(left, top) then
-        -- log("Recharting chunk: " .. left .. ", " .. top)
-        game.forces['player'].chart(surf, {{x = left - 16, y = top - 16}, {x = left + 16, y = top + 16}})
+  for k, v in ipairs(global.Mod.BaseCandidates) do
+	game.forces['player'].chart(surf, v.x, v.y)
         nChunks = nChunks + 1
-      end
-    end
-    tChunks = tChunks + 1
   end
-  log(string.format("Recharted %d/%d chunks.", nChunks, tChunks))
+  log(string.format("Recharted %d chunks.", nChunks))
 end 
 
 function Events.AddRadar(e)
@@ -260,7 +240,8 @@ function Events.RemoveRadar(e)
       if v == e.entity.position then
         table.remove(global.Mod.RadarCoords, k)
       end
-    end
+	end
+	Events._findBaseCandidates()
   end
 end
 
