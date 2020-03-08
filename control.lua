@@ -1,3 +1,4 @@
+require("commands")
 local Events = require("lib.events")
 
 local function CreateGlobals()
