@@ -1,12 +1,12 @@
 local Events = {}
 
-local function pointInBase( x, y)
+local function pointInBase( x, y, ...)
   -- local vertices = global.Mod.PanopticonRadarCoords
   local points = global.Mod.PanopticonRadarCoords
 	
-  -- for i=1, #vertices-1, 2 do
-  --   points[#points+1] = { x=vertices[i], y=vertices[i+1] }
-  -- end
+--  for i=1, #vertices-1, 2 do
+--    points[#points+1] = { x=vertices[i], y=vertices[i+1] }
+--  end
 
   local i, j = #points, #points
   local inside = false
@@ -19,7 +19,7 @@ local function pointInBase( x, y)
     end
     j = i
   end
-
+  log(string.format("%d, %d is %s", x, y, inside))
   return inside
 end
 

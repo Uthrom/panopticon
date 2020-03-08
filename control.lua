@@ -17,7 +17,7 @@ end
 local function UpdateSetting(settingName)
   if settingName == "panopticon-rechart-interval" then
     global.Mod.PanopticonRechartInterval = settings.global['panopticon-rechart-interval'].value
-    Events.findall_radars()
+    -- Events.findall_radars()
     script.on_nth_tick(nil)
     script.on_nth_tick((global.Mod.PanopticonRechartInterval * 60), Events.rechart_base)
     Events.rechart_base()
