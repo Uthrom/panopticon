@@ -1,33 +1,13 @@
 local Events = require("lib.events")
 
 local function CreateGlobals()
-  if global.Mod == nil then
-    global.Mod = {}
-  end
-
-  if global.Mod.PanopticonNorth == nil then
-    global.Mod.PanopticonNorth = 0
-  end
-
-  if global.Mod.PanopticonEast == nil then
-    global.Mod.PanopticonEast = 0
-  end
-
-  if global.Mod.PanopticonSouth == nil then
-    global.Mod.PanopticonSouth = 0
-  end
-
-  if global.Mod.PanopticonWest == nil then
-    global.Mod.PanopticonWest = 0
-  end
-
-  if global.Mod.PanopticonRadarCoords == nil then
-    global.Mod.PanopticonRadarCoords = {}
-  end
-
-  if global.Mod.PanopticonRechartInterval == nil then
-    global.Mod.PanopticonRechartInterval = 30
-  end
+  global.Mod = global.Mod or {}
+  global.Mod.PanopticonNorth = global.Mod.PanopticonNorth or 0
+  global.Mod.PanopticonEast = global.Mod.PanopticonEast or 0
+  global.Mod.PanopticonSouth = global.Mod.PanopticonSouth or 0
+  global.Mod.PanopticonWest = global.Mod.PanopticonWest or 0
+  global.Mod.PanopticonRadarCoords = global.Mod.PanopticonRadarCoords or {}
+  global.Mod.PanopticonRechartInterval = global.Mod.PanopticonRechartInterval or 30
 end
 
 local function GetStartUpSettings()
@@ -37,9 +17,10 @@ end
 local function UpdateSetting(settingName)
   if settingName == "panopticon-rechart-interval" then
     global.Mod.PanopticonRechartInterval = settings.global['panopticon-rechart-interval'].value
-    script.on_nth_tick(nil, Events.rechart_base)
     Events.findall_radars()
-    script.on_nth_tick((global.Mod.PanopticonRechartInterval * 60), events.rechart_base)
+    script.on_nth_tick(nil)
+    script.on_nth_tick((global.Mod.PanopticonRechartInterval * 60), Events.rechart_base)
+    Events.rechart_base()
 
   end
 end
@@ -47,6 +28,7 @@ end
 local function OnStartup()
   CreateGlobals()
   GetStartUpSettings()
+  Events.findall_radars()
   Events.Init()
 end
 
@@ -62,7 +44,9 @@ end
 script.on_init(OnStartup)
 script.on_load(OnLoad)
 script.on_configuration_changed(OnStartup)
+
 script.on_event(defines.events.on_runtime_mod_setting_changed, OnSettingChanged)
+
 script.on_event(defines.events.on_built_entity, Events.AddRadar, { {filter = "name", name = "radar"} })
 script.on_event(defines.events.on_robot_built_entity, Events.AddRadar, { {filter = "name", name = "radar"} })
 script.on_event(defines.events.on_entity_died, Events.RemoveRadar, { {filter = "name", name = "radar"} })
