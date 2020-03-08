@@ -1,8 +1,5 @@
 local trig = require("lib.trig")
-
 local Events = {}
-
-
 
 local function _findBaseCandidates()
 	local surf = game.surfaces.nauvis
@@ -76,16 +73,16 @@ end
 function Events.AddRadar(e)
   if e.created_entity ~= nil and e.created_entity.name == "radar" then
     radar = e.created_entity
-	_addRadar(global.Mod.RadarCoords, radar)
-	_findBaseCandidates()
+	  _addRadar(global.Mod.RadarCoords, radar)
+	  _findBaseCandidates()
   end
 end
 
 function Events.AddClonedRadar(e)
   if e.destination ~= nil and e.destination.name == "radar" then
     radar = e.destination
-	_addRadar(global.Mod.RadarCoords, radar)
-	_findBaseCandidates()
+	  _addRadar(global.Mod.RadarCoords, radar)
+	  _findBaseCandidates()
   end
 end
 
