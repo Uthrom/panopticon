@@ -3,24 +3,24 @@ local Events = require("lib.events")
 
 local function CreateGlobals()
   global.Mod = global.Mod or {}
-  global.Mod.PanopticonNorth = global.Mod.PanopticonNorth or 0
-  global.Mod.PanopticonEast = global.Mod.PanopticonEast or 0
-  global.Mod.PanopticonSouth = global.Mod.PanopticonSouth or 0
-  global.Mod.PanopticonWest = global.Mod.PanopticonWest or 0
-  global.Mod.PanopticonRadarCoords = global.Mod.PanopticonRadarCoords or {}
-  global.Mod.PanopticonRechartInterval = global.Mod.PanopticonRechartInterval or 30
+  global.Mod.North = global.Mod.North or 0
+  global.Mod.East = global.Mod.East or 0
+  global.Mod.South = global.Mod.South or 0
+  global.Mod.West = global.Mod.West or 0
+  global.Mod.RadarCoords = global.Mod.RadarCoords or {}
+  global.Mod.RechartInterval = global.Mod.RechartInterval or 30
 end
 
 local function GetStartUpSettings()
-  global.Mod.PanopticonRechartInterval = settings.global['panopticon-rechart-interval'].value
+  global.Mod.RechartInterval = settings.global['panopticon-rechart-interval'].value
 end
 
 local function UpdateSetting(settingName)
   if settingName == "panopticon-rechart-interval" then
-    global.Mod.PanopticonRechartInterval = settings.global['panopticon-rechart-interval'].value
+    global.Mod.RechartInterval = settings.global['panopticon-rechart-interval'].value
     -- Events.findall_radars()
     script.on_nth_tick(nil)
-    script.on_nth_tick((global.Mod.PanopticonRechartInterval * 60), Events.rechart_base)
+    script.on_nth_tick((global.Mod.RechartInterval * 60), Events.rechart_base)
     Events.rechart_base()
 
   end
@@ -29,7 +29,7 @@ end
 local function OnStartup()
   CreateGlobals()
   GetStartUpSettings()
-  Events.findall_radars()
+  -- Events.findall_radars()
   Events.Init()
 end
 
