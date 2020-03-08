@@ -1,3 +1,8 @@
+-------------------------------------------------------------------------
+-- The following function is based off code from
+-- [ https://love2d.org/wiki/PointWithinShape ]
+--
+
 local trig = {}
 
 function trig.PointWithinShape(shape, tx, ty)
