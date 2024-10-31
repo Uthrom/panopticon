@@ -1,11 +1,11 @@
 {
     "name": "Panopticon",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "title": "Panopticon",
     "author": "Uthrom",
     "contact": "https://mods.factorio.com/mod/Panopticon/discussion",
     "homepage": "https://github.com/Uthrom/Panopticon",
-    "factorio_version": "1.1",
+    "factorio_version": "2.0",
 
     "description": "Who watches the watchers? The base."
 }
