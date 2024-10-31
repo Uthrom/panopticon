@@ -41,8 +41,8 @@ local function _addRadar(surface_name, list, radar)
     end
 --    log(string.format("Added: %d, %d on surface %s", radar.position.x, radar.position.y, surface_name))
 --    log(string.format("New N/S/E/W Max Coords on surface %s: %d, %d, %d, %d", surface_name,
-      storage.Mod[surface_name].North, storage.Mod[surface_name].South, storage.Mod[surface_name].East,
-      storage.Mod[surface_name].West))
+--      storage.Mod[surface_name].North, storage.Mod[surface_name].South, storage.Mod[surface_name].East,
+--      storage.Mod[surface_name].West))
     table.insert(list, radar.position)
   end
 end
