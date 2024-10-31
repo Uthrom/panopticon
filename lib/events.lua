@@ -3,60 +3,78 @@ local Constants = require("constants")
 
 local Events = {}
 
+-- Helper function to ensure storage is initialized for a given surface
+local function CheckSurfaceStorage(surface_name)
+  storage.Mod[surface_name] = storage.Mod[surface_name] or {
+    North = 0,
+    East = 0,
+    South = 0,
+    West = 0,
+    RadarCoords = {},
+    BaseCandidates = {}
+  }
+end
+
 local function _findBaseCandidates(surface_name)
+  CheckSurfaceStorage(surface_name)
   local surf = game.surfaces[surface_name]
+
   storage.Mod[surface_name].BaseCandidates = {}
+
+  -- Convert RadarCoords from dictionary to array format for PointWithinShape
+  local radar_coords_array = {}
+  for _, radar_position in pairs(storage.Mod[surface_name].RadarCoords) do
+    table.insert(radar_coords_array, radar_position)
+  end
 
   for chunk in surf.get_chunks() do
     local left, top = (chunk.x * 32) + 16, (chunk.y * 32) + 16
     if (top > storage.Mod[surface_name].North) and (top < storage.Mod[surface_name].South) and
         (left > storage.Mod[surface_name].West) and (left < storage.Mod[surface_name].East) then
-      if trig.PointWithinShape(storage.Mod[surface_name].RadarCoords, left, top) then
+      if trig.PointWithinShape(radar_coords_array, left, top) then
         table.insert(storage.Mod[surface_name].BaseCandidates, { x = left, y = top })
       end
     end
   end
+
   log(string.format("Base Candidates: %d chunks on surface %s.", #storage.Mod[surface_name].BaseCandidates, surface_name))
 end
+local function _addRadar(surface_name, radar)
+  -- Ensure storage for the surface is initialized
+  CheckSurfaceStorage(surface_name)
 
-local function _addRadar(surface_name, list, radar)
-  local found = false
-  for k, v in ipairs(storage.Mod[surface_name].RadarCoords) do
-    if v == radar.position then
-      found = true
-    end
-  end
-  if not found then
-    if radar.position.x < storage.Mod[surface_name].West then
-      storage.Mod[surface_name].West = radar.position.x
-    end
-    if radar.position.x > storage.Mod[surface_name].East then
-      storage.Mod[surface_name].East = radar.position.x
-    end
-    if radar.position.y < storage.Mod[surface_name].North then
-      storage.Mod[surface_name].North = radar.position.y
-    end
-    if radar.position.y > storage.Mod[surface_name].South then
-      storage.Mod[surface_name].South = radar.position.y
-    end
---    log(string.format("Added: %d, %d on surface %s", radar.position.x, radar.position.y, surface_name))
---    log(string.format("New N/S/E/W Max Coords on surface %s: %d, %d, %d, %d", surface_name,
---      storage.Mod[surface_name].North, storage.Mod[surface_name].South, storage.Mod[surface_name].East,
---      storage.Mod[surface_name].West))
-    table.insert(list, radar.position)
+  -- Create a unique key for the radar's position based on its coordinates
+  local position_key = radar.position.x .. "," .. radar.position.y
+
+  -- Check if this radar position already exists in RadarCoords
+  if not storage.Mod[surface_name].RadarCoords[position_key] then
+    -- Update the boundary coordinates if necessary
+    storage.Mod[surface_name].West = math.min(storage.Mod[surface_name].West, radar.position.x)
+    storage.Mod[surface_name].East = math.max(storage.Mod[surface_name].East, radar.position.x)
+    storage.Mod[surface_name].North = math.min(storage.Mod[surface_name].North, radar.position.y)
+    storage.Mod[surface_name].South = math.max(storage.Mod[surface_name].South, radar.position.y)
+
+    -- Add the radar to RadarCoords as a dictionary entry
+    storage.Mod[surface_name].RadarCoords[position_key] = { x = radar.position.x, y = radar.position.y }
+
+    -- Log the added radar and updated boundaries for debugging (optional)
+    -- log(string.format("Added radar at position (%d, %d) on surface %s", radar.position.x, radar.position.y, surface_name))
+    -- log(string.format("Updated boundaries on surface %s: North=%d, South=%d, East=%d, West=%d",
+    --   surface_name, storage.Mod[surface_name].North, storage.Mod[surface_name].South,
+    --  storage.Mod[surface_name].East, storage.Mod[surface_name].West))
   end
 end
 
 function Events.findall_radars(surface_name)
   if surface_name and type(surface_name) == "string" then
---    log("findall_radar(" .. surface_name .. ")")
 
+    CheckSurfaceStorage(surface_name)
     storage.Mod[surface_name].RadarCoords = {}
     for chunk in game.surfaces[surface_name].get_chunks() do
       local top, left = chunk.x * 32, chunk.y * 32
       local bottom, right = top + 32, left + 32
       for _, radar in pairs(game.surfaces[surface_name].find_entities_filtered { area = { { top, left }, { bottom, right } }, name = "radar" }) do
-        _addRadar(surface_name, storage.Mod[surface_name].RadarCoords, radar)
+        _addRadar(surface_name, radar)
       end
     end
     _findBaseCandidates(surface_name)
@@ -92,9 +110,8 @@ function Events.AddRadar(e)
   if e.created_entity ~= nil and e.created_entity.name == "radar" then
     local radar = e.created_entity
     local surface_name = radar.surface.name
-    storage.Mod[surface_name] = storage.Mod[surface_name] or
-        { North = 0, East = 0, South = 0, West = 0, RadarCoords = {}, BaseCandidates = {} }
-    _addRadar(surface_name, storage.Mod[surface_name].RadarCoords, radar)
+    CheckSurfaceStorage(surface_name)
+    _addRadar(surface_name, radar)
     _findBaseCandidates(surface_name)
   end
 end
@@ -103,22 +120,26 @@ function Events.AddClonedRadar(e)
   if e.destination ~= nil and e.destination.name == "radar" then
     local radar = e.destination
     local surface_name = radar.surface.name
-    storage.Mod[surface_name] = storage.Mod[surface_name] or
-        { North = 0, East = 0, South = 0, West = 0, RadarCoords = {}, BaseCandidates = {} }
-    _addRadar(surface_name, storage.Mod[surface_name].RadarCoords, radar)
+    CheckSurfaceStorage(surface_name)
+    _addRadar(surface_name, radar)
     _findBaseCandidates(surface_name)
   end
 end
 
 function Events.RemoveRadar(e)
---  log("Removing radar on surface " .. e.entity.surface.name)
   if e.entity ~= nil and e.entity.name == "radar" then
     local surface_name = e.entity.surface.name
-    for k, v in ipairs(storage.Mod[surface_name].RadarCoords) do
-      if v == e.entity.position then
-        table.remove(storage.Mod[surface_name].RadarCoords, k)
-      end
+    CheckSurfaceStorage(surface_name)
+    
+    -- Create the unique key for the radar's position
+    local position_key = e.entity.position.x .. "," .. e.entity.position.y
+    
+    -- Remove the radar from RadarCoords if it exists
+    if storage.Mod[surface_name].RadarCoords[position_key] then
+      storage.Mod[surface_name].RadarCoords[position_key] = nil
     end
+
+    -- Recalculate base candidates after removing the radar
     _findBaseCandidates(surface_name)
   end
 end
@@ -127,6 +148,7 @@ function Events.OnSurfaceCreated(data)
   -- Retrieve the surface using the surface_index from event data
   local surface = game.surfaces[data.surface_index]
 
+  CheckSurfaceStorage(surface.name)
   if surface then
     -- Initialize storage.Mod for the new surface
     storage.Mod[surface.name] = storage.Mod[surface.name] or {
@@ -158,6 +180,7 @@ function Events.OnSurfaceDeleted(data)
   -- Retrieve the surface using the surface_index
   local surface = game.surfaces[data.surface_index]
 
+  CheckSurfaceStorage(surface.name)
   if surface then
     local surface_name = surface.name
     -- Check if storage.Mod contains an entry for this surface and delete it if it exists

@@ -1,6 +1,11 @@
 require("commands")
 local Events = require("lib.events")
 
+local function InitializeStorage()
+  storage.Mod = storage.Mod or {}
+  storage.Mod.RechartInterval = storage.Mod.RechartInterval or settings.global['panopticon-rechart-interval'].value
+end
+
 local function CreateGlobals(surface_name)
   storage.Mod = storage.Mod or {}
   storage.Mod[surface_name] = storage.Mod[surface_name] or {}
@@ -10,14 +15,6 @@ local function CreateGlobals(surface_name)
   storage.Mod[surface_name].West = storage.Mod[surface_name].West or 0
   storage.Mod[surface_name].RadarCoords = storage.Mod[surface_name].RadarCoords or {}
   storage.Mod[surface_name].BaseCandidates = storage.Mod[surface_name].BaseCandidates or {}
-
-  -- Initialize RechartInterval if not already set
-  storage.Mod.RechartInterval = storage.Mod.RechartInterval or settings.global['panopticon-rechart-interval'].value
-end
-
-local function GetStartUpSettings()
-  storage.Mod = storage.Mod or {}
-  storage.Mod.RechartInterval = settings.global['panopticon-rechart-interval'].value
 end
 
 local function UpdateSetting(settingName)
@@ -35,9 +32,8 @@ local function OnStartup()
     CreateGlobals(surf.name)
   end
 
-  GetStartUpSettings()
-  -- Initialize radar searches and rechart intervals
-  Events.Init()
+  InitializeStorage() -- Initialize global settings storage
+  Events.Init()       -- Initialize radar searches and rechart intervals
 end
 
 local function OnSettingChanged(event)
@@ -46,6 +42,7 @@ local function OnSettingChanged(event)
 end
 
 local function OnLoad()
+  InitializeStorage() -- Ensure storage is initialized
   Events.Init()
 end
 
