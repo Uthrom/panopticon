@@ -71,7 +71,7 @@ end
 
 function Events.rechart_base(surface_name)
   if surface_name and type(surface_name) == "string" then
-    log("Recharting on surface " .. surface_name .. "...")
+--    log("Recharting on surface " .. surface_name .. "...")
     local nChunks = 0
     local surf = game.surfaces[surface_name]
     serpent.block(game.surfaces[surface_name])
